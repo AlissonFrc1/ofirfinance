@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id            String    @id @default(uuid())
+  value         Decimal
+  paid          Boolean   @default(false)
+  recurring     Boolean   @default(false)
+  date          DateTime
+  nextDate      DateTime?
+  paymentMethod String
+  category      String
+  subcategory   String
+  fixed         Boolean   @default(false)
+  installments  Int?
+  description   String?
+  dueDay        Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CardExpense {
+  id           String   @id @default(uuid())
+  value        Decimal
+  date         DateTime
+  dueDate      DateTime
+  cardId       String
+  category     String
+  subcategory  String
+  recurring    Boolean  @default(false)
+  fixed        Boolean  @default(false)
+  installments Int?
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  endRecurrenceDate DateTime?
+  card         Card     @relation(fields: [cardId], references: [id])
+}
+
+model Income {
+  id           String    @id @default(uuid())
+  value        Decimal
+  received     Boolean   @default(false)
+  recurring    Boolean   @default(false)
+  date         DateTime
+  nextDate     DateTime?
+  category     String
+  subcategory  String
+  fixed        Boolean   @default(false)
+  installments Int?
+  description  String?
+  dueDay       Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Card {
+  id         String        @id @default(uuid())
+  name       String
+  brand      String
+  bank       String        @default("Não Informado")
+  lastDigits String
+  limit      Decimal
+  dueDay     Int
+  closingDay Int
+  color      String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  expenses   CardExpense[]
+}

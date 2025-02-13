@@ -1,0 +1,174 @@
+import React, { useState, useEffect } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/outline';
+
+interface EditCardModalProps {
+  card: {
+    id: string;
+    name: string;
+    brand: string;
+    lastDigits: string;
+    limit: number;
+    dueDay: number;
+    closingDay: number;
+    color: string;
+  };
+  onClose: () => void;
+  onUpdate: (updatedCard: {
+    limit: number;
+    dueDay: number;
+    closingDay: number;
+    color: string;
+  }) => Promise<void>;
+}
+
+// Paleta de cores predefinidas para cartões
+const CARD_COLORS = [
+  '#1A1A2E',   // Dark Blue
+  '#4A4E69',   // Slate Gray
+  '#6A4C93',   // Purple
+  '#1982C4',   // Blue
+  '#8AC926',   // Green
+  '#FF924C',   // Orange
+  '#FF6B6B',   // Red
+  '#7209B7',   // Deep Purple
+  '#3A86FF',   // Bright Blue
+  '#023E8A',   // Navy Blue
+];
+
+export function EditCardModal({ 
+  card, 
+  onClose, 
+  onUpdate 
+}: EditCardModalProps) {
+  const [limit, setLimit] = useState(card.limit);
+  const [dueDay, setDueDay] = useState(card.dueDay);
+  const [closingDay, setClosingDay] = useState(card.closingDay);
+  const [color, setColor] = useState(card.color);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await onUpdate({
+        limit,
+        dueDay,
+        closingDay,
+        color
+      });
+      onClose();
+    } catch (error) {
+      console.error('Erro ao atualizar cartão:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+      <div className="bg-card-bg rounded-xl p-6 w-full max-w-md mx-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">
+            Editar Cartão {card.brand} - {card.name}
+          </h2>
+          <button 
+            onClick={onClose}
+            className="text-text-secondary hover:text-text-primary"
+          >
+            <XMarkIcon className="w-6 h-6" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Limite do Cartão
+            </label>
+            <input
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="w-full p-2 border rounded bg-input-bg text-text-primary"
+              placeholder="Limite do cartão"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Dia de Vencimento
+            </label>
+            <input
+              type="number"
+              value={dueDay}
+              onChange={(e) => setDueDay(Number(e.target.value))}
+              className="w-full p-2 border rounded bg-input-bg text-text-primary"
+              placeholder="Dia de vencimento"
+              min="1"
+              max="31"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Dia de Fechamento
+            </label>
+            <input
+              type="number"
+              value={closingDay}
+              onChange={(e) => setClosingDay(Number(e.target.value))}
+              className="w-full p-2 border rounded bg-input-bg text-text-primary"
+              placeholder="Dia de fechamento"
+              min="1"
+              max="31"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-text-secondary mb-2">
+              Cor do Cartão
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {CARD_COLORS.map((colorOption) => (
+                <button
+                  key={colorOption}
+                  type="button"
+                  onClick={() => setColor(colorOption)}
+                  className={`w-10 h-10 rounded-full hover:scale-110 transition-transform ${
+                    color === colorOption 
+                      ? 'ring-4 ring-primary/50 scale-110' 
+                      : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: colorOption,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                  }}
+                  aria-label={`Selecionar cor ${colorOption}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-4 mt-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark disabled:opacity-50"
+            >
+              {loading ? 'Atualizando...' : 'Atualizar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}

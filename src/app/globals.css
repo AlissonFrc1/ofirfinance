@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #121212;
+    --card-bg: #1E1E2F;
+    --primary: #7B61FF;
+    --secondary: #FF5E57;
+    --success: #3FBC8B;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0A0;
+    --divider: #272739;
+  }
+
+  * {
+    @apply border-divider;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+  }
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--card-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--divider);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
