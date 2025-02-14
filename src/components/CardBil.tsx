@@ -23,6 +23,7 @@ interface CardExpense {
   dueDate?: string;
   recurring?: boolean;
   endRecurrenceDate?: string;
+  valorParcela?: number;
 }
 
 interface CategoryExpenses {
@@ -79,7 +80,7 @@ export function CardBill({ cardId, cardName, onClose }: CardBillProps) {
     endDate: Date
   ) => {
     const expenseDate = new Date(expense.date);
-    const dueDateExpense = new Date(expense.dueDate);
+    const dueDateExpense = expense.dueDate ? new Date(expense.dueDate) : expenseDate;
     const originalExpenseDate = expense.originalExpense?.date 
       ? new Date(expense.originalExpense.date) 
       : expenseDate;
@@ -206,7 +207,7 @@ export function CardBill({ cardId, cardName, onClose }: CardBillProps) {
           ...expense,
           valorParcela: installmentValue
         };
-      }).filter((expense: CardExpense) => expense.valorParcela > 0);
+      }).filter((expense: CardExpense) => (expense.valorParcela || 0) > 0);
       
       console.groupEnd();
       
@@ -218,7 +219,7 @@ export function CardBill({ cardId, cardName, onClose }: CardBillProps) {
       // Agrupar despesas por categoria
       const byCategory = filteredExpenses.reduce((acc: Record<string, CategoryExpenses>, expense: CardExpense) => {
         const category = expense.category;
-        const installmentValue = expense.valorParcela;
+        const installmentValue = expense.valorParcela || 0;
         
         if (!acc[category]) {
           acc[category] = { total: 0, expenses: [] };
@@ -273,160 +274,53 @@ export function CardBill({ cardId, cardName, onClose }: CardBillProps) {
     return `${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`;
   };
 
+  useEffect(() => {
+    if (billDetails) {
+      console.log('💵 VALOR RENDERIZADO:', billDetails.total);
+    }
+  }, [billDetails?.total]);
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold text-text-primary">
-              Fatura do Cartão
-            </h2>
-            <p className="text-text-secondary">{cardName}</p>
-          </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl w-full max-w-4xl p-4 shadow-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-base font-semibold text-text-primary">
+            Fatura do Cartão {cardName}
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 text-text-secondary hover:text-text-primary transition-colors"
+            className="text-text-secondary hover:text-text-primary focus:outline-none"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
-        {loading ? (
+        {loading && (
           <div className="flex items-center justify-center h-64">
-            <p className="text-text-secondary">Carregando fatura...</p>
+            <p className="text-text-secondary">Carregando detalhes da fatura...</p>
           </div>
-        ) : error ? (
+        )}
+
+        {error && (
           <div className="flex items-center justify-center h-64">
             <p className="text-red-500">{error}</p>
           </div>
-        ) : billDetails ? (
-          <div className="space-y-8">
-            {/* Cabeçalho da Fatura */}
-            <div className="bg-card-bg rounded-lg p-6">
-              <div className="grid grid-cols-3 gap-6">
+        )}
+
+        {billDetails && (
+          <div className="space-y-4">
+            <div className="bg-card-bg p-4 rounded-lg">
+              <div className="flex justify-between items-center">
                 <div>
-                  <span className="block text-sm text-text-secondary mb-1">Período</span>
-                  <span className="text-text-primary">
-                    {formatPeriod(billDetails.period.start, billDetails.period.end)}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-sm text-text-secondary mb-1">Vencimento</span>
-                  <span className="text-text-primary">
-                    Todo dia {billDetails.card.dueDay}
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-sm text-green-500 mb-1">Total da Fatura</span>
+                  <span className="text-sm text-text-secondary">Total da Fatura</span>
                   <span className="text-xl font-bold text-green-500">
                     {formatCurrency(billDetails.total)}
-                    {console.log('💵 VALOR RENDERIZADO:', billDetails.total)}
                   </span>
                 </div>
-              </div>
-            </div>
-
-            {/* Gastos por Categoria */}
-            <div>
-              <h3 className="text-lg font-medium text-text-primary mb-4">
-                Gastos por Categoria
-              </h3>
-              <div className="space-y-4">
-                {Object.entries(billDetails.byCategory).map(([category, data]) => (
-                  <div key={category} className="bg-card-bg rounded-lg overflow-hidden">
-                    <div className="p-4 border-b border-divider">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-text-primary">{category}</h4>
-                        <span className="font-medium text-expense">
-                          {formatCurrency(data.total)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-sm text-text-secondary">
-                            <th className="text-left pb-2">Data</th>
-                            <th className="text-left pb-2">Descrição</th>
-                            <th className="text-right pb-2">Valor</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {data.expenses.map((expense) => (
-                            <tr key={expense.id} className="text-sm">
-                              <td className="py-2">{formatDate(expense.date)}</td>
-                              <td className="py-2">
-                                {expense.description || expense.subcategory}
-                                {expense.installments && (
-                                  <span className="ml-2 text-xs text-text-secondary">
-                                    (Parcelado em {expense.installments}x)
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-2 text-right text-expense">
-                                {formatCurrency(expense.value)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Despesas Agrupadas por Mês */}
-            <div>
-              <h3 className="text-lg font-medium text-text-primary mb-4">
-                Despesas Agrupadas por Mês
-              </h3>
-              <div className="space-y-4">
-                {Object.entries(monthlyExpenses).map(([month, data]) => (
-                  <div key={month} className="bg-card-bg rounded-lg overflow-hidden">
-                    <div className="p-4 border-b border-divider">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-text-primary">{month}</h4>
-                        <span className="font-medium text-expense">
-                          {formatCurrency(data.total)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-sm text-text-secondary">
-                            <th className="text-left pb-2">Data</th>
-                            <th className="text-left pb-2">Descrição</th>
-                            <th className="text-right pb-2">Valor</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {data.expenses.map((expense) => (
-                            <tr key={expense.id} className="text-sm">
-                              <td className="py-2">{formatDate(expense.date)}</td>
-                              <td className="py-2">
-                                {expense.description || expense.subcategory}
-                                {expense.installments && (
-                                  <span className="ml-2 text-xs text-text-secondary">
-                                    (Parcelado em {expense.installments}x)
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-2 text-right text-expense">
-                                {formatCurrency(expense.value)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );

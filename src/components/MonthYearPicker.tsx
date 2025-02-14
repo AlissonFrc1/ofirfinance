@@ -9,6 +9,7 @@ interface MonthYearPickerProps {
   selectedMonths?: number[];
   onMonthChange?: (month: number) => void;
   onYearChange?: (year: number) => void;
+  className?: string;
 }
 
 export function MonthYearPicker({
@@ -18,12 +19,12 @@ export function MonthYearPicker({
   multipleMonths = false,
   selectedMonths = [],
   onMonthChange,
-  onYearChange
+  onYearChange,
+  className = ''
 }: MonthYearPickerProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedMonth);
   const [currentYear, setCurrentYear] = useState(selectedYear);
 
-  // Remover useEffect que estava causando loop
   const handlePreviousMonth = () => {
     const newDate = new Date(currentYear, currentMonth - 1);
     const newMonth = newDate.getMonth();
@@ -34,7 +35,6 @@ export function MonthYearPicker({
     
     onChange(newMonth, newYear);
     
-    // Chamar handlers específicos, se existirem
     onMonthChange?.(newMonth);
     onYearChange?.(newYear);
   };
@@ -49,7 +49,6 @@ export function MonthYearPicker({
     
     onChange(newMonth, newYear);
     
-    // Chamar handlers específicos, se existirem
     onMonthChange?.(newMonth);
     onYearChange?.(newYear);
   };
@@ -59,7 +58,7 @@ export function MonthYearPicker({
   });
 
   return (
-    <div className="inline-flex items-center gap-2 bg-primary rounded-lg px-3 py-1">
+    <div className={`inline-flex items-center gap-2 bg-primary rounded-lg px-3 py-1 z-[9999] ${className}`}>
       <button
         onClick={handlePreviousMonth}
         className="p-1 text-white hover:opacity-80 transition-opacity"
@@ -68,10 +67,10 @@ export function MonthYearPicker({
       </button>
 
       <div className="flex items-center gap-1">
-        <span className="text-white capitalize">
+        <span className="text-white capitalize text-sm">
           {monthName}
         </span>
-        <span className="text-white ml-1">
+        <span className="text-white ml-1 text-sm">
           {currentYear}
         </span>
       </div>

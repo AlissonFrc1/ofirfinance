@@ -12,6 +12,23 @@ export interface Transaction {
   walletId?: string;
 }
 
+export interface CardExpense {
+  id: string;
+  value: number;
+  date: string;
+  category: string;
+  subcategory: string;
+  description?: string;
+  fixed: boolean;
+  recurring: boolean;
+  dueDate?: string;
+  endRecurrenceDate?: string;
+  installments?: number;
+  currentInstallment?: number;
+  status: string;
+  notes?: string;
+}
+
 export interface Card {
   id: string;
   name: string;

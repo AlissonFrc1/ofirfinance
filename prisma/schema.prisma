@@ -26,21 +26,22 @@ model Expense {
 }
 
 model CardExpense {
-  id           String   @id @default(uuid())
-  value        Decimal
-  date         DateTime
-  dueDate      DateTime
-  cardId       String
-  category     String
-  subcategory  String
-  recurring    Boolean  @default(false)
-  fixed        Boolean  @default(false)
-  installments Int?
-  description  String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                String    @id @default(uuid())
+  value             Decimal
+  date              DateTime
+  dueDate           DateTime
+  cardId            String
+  category          String
+  subcategory       String
+  recurring         Boolean   @default(false)
+  fixed             Boolean   @default(false)
+  installments      Int?
+  description       String?
+  paid              Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   endRecurrenceDate DateTime?
-  card         Card     @relation(fields: [cardId], references: [id])
+  card              Card      @relation(fields: [cardId], references: [id])
 }
 
 model Income {

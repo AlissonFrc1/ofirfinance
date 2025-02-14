@@ -60,9 +60,9 @@ const mockBudgets: Budget[] = [
 
 export default function BudgetsPage() {
   const [budgets, setBudgets] = useState(mockBudgets);
-  const [editingBudget, setEditingBudget] = useState(null);
-  const [showAnalysis, setShowAnalysis] = useState(null);
-  const [showHistory, setShowHistory] = useState(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [showAnalysis, setShowAnalysis] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState<string | null>(null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

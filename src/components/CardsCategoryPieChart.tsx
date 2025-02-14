@@ -4,10 +4,13 @@ import {
   Chart as ChartJS, 
   ArcElement, 
   Tooltip, 
-  Legend, 
-  ChartOptions 
+  Legend,
+  ChartOptions as DefaultChartOptions
 } from 'chart.js';
 import { useMonthFilter } from '@/contexts/MonthFilterContext';
+
+// Definindo o tipo correto para as opções do gráfico Doughnut
+type ChartOptions = DefaultChartOptions<'doughnut'>;
 
 ChartJS.register(
   ArcElement, 

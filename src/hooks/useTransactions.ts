@@ -12,6 +12,7 @@ interface Transaction {
   installments?: number;
   currentInstallment?: number;
   status: string;
+  notes?: string;
 }
 
 interface UseTransactionsProps {

@@ -49,10 +49,10 @@ export function EditCardModal({
     setLoading(true);
     try {
       const updatedCard = {
-        limit: limit !== card.limit ? limit : undefined,
-        dueDay: dueDay !== card.dueDay ? dueDay : undefined,
-        closingDay: closingDay !== card.closingDay ? closingDay : undefined,
-        color: color !== card.color ? color : undefined,
+        limit: limit,
+        dueDay: dueDay,
+        closingDay: closingDay,
+        color: color,
       };
       await onUpdate(updatedCard);
       onClose();

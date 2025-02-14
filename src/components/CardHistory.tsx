@@ -13,6 +13,8 @@ interface CardExpense {
   installments?: number;
   fixed: boolean;
   recurring: boolean;
+  parcela_atual?: number;
+  total_parcelas?: number;
 }
 
 interface Props {

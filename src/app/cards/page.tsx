@@ -288,23 +288,29 @@ function CardsPageContent() {
     if (!editingCard) return;
 
     try {
-      const response = await fetch('/api/cards', {
-        method: 'PUT',
+      const response = await fetch(`/api/cards/${editingCard.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...data, id: editingCard.id }),
+        body: JSON.stringify({
+          name: data.name,
+          lastDigits: data.lastDigits,
+          limit: Number(data.limit),
+          dueDay: Number(data.dueDay),
+          closingDay: Number(data.closingDay),
+          color: data.color,
+          bank: data.bank
+        }),
       });
 
-      if (!response.ok) throw new Error('Erro ao atualizar cartão');
+      if (!response.ok) throw new Error('Erro ao editar cartão');
 
-      const updatedCard = await response.json();
-      setCards(cards.map((card) => 
-        card.id === editingCard.id ? updatedCard : card
-      ));
+      // Atualizar a lista de cartões
+      await fetchCards();
       setEditingCard(null);
     } catch (error) {
-      console.error('Erro ao atualizar cartão:', error);
+      console.error('Erro ao editar cartão:', error);
     }
   };
 
@@ -549,7 +555,7 @@ function CardsPageContent() {
               selectedMonth={currentMonth}
               selectedYear={currentYear}
               onChange={(month, year) => handleMonthChange(month, year)}
-              className="bg-white shadow-lg rounded-xl p-4 w-full max-w-md text-primary"
+              className="bg-primary shadow-sm text-white"
             />
           </div>
 
@@ -721,17 +727,17 @@ function CardsPageContent() {
 
       {editingCard && (
         <CardForm
+          onSubmit={handleEditCard}
+          onClose={() => setEditingCard(null)}
           initialData={{
             name: editingCard.name,
             lastDigits: editingCard.lastDigits,
             limit: Number(editingCard.limit),
-            dueDate: Number(editingCard.dueDay),
-            closingDate: Number(editingCard.closingDay),
+            dueDay: Number(editingCard.dueDay),
+            closingDay: Number(editingCard.closingDay),
             color: editingCard.color,
             bank: editingCard.brand
           }}
-          onSubmit={handleEditCard}
-          onClose={() => setEditingCard(null)}
         />
       )}
 

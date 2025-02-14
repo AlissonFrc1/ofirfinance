@@ -191,8 +191,7 @@ export function CardBillPaymentForm({
         dueDate,
         paid: paymentStatus === 'paid',
         description,
-        paymentMethod,
-        alreadySubmitted: true  // Flag para indicar que já foi enviado
+        paymentMethod
       });
 
       // Fechar o formulário
@@ -203,10 +202,6 @@ export function CardBillPaymentForm({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleInputChange = (field: keyof CardBillPaymentFormData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const formatCurrencyInput = (value: string) => {

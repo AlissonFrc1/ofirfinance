@@ -7,4 +7,5 @@ export interface Card {
   dueDay: number;
   closingDay: number;
   currentBill?: number;
+  color: string;
 } 

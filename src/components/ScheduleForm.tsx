@@ -9,7 +9,7 @@ interface ScheduleFormProps {
   onClose: () => void;
   initialData?: Partial<ScheduleFormData>;
   wallets: Array<{ id: string; name: string }>;
-  cards: Array<{ id: string; name: string }>;
+  cards: Array<{ id: string; name: string; lastDigits: string }>;
 }
 
 export interface ScheduleFormData {
@@ -173,7 +173,6 @@ export function ScheduleForm({
                 value={formData.category}
                 onChange={(e) => {
                   handleInputChange('category', e.target.value);
-                  handleInputChange('subcategory', '');
                 }}
                 className="w-full px-2 py-1.5 text-[0.72rem] border rounded-md focus:ring-1 focus:ring-primary"
                 required

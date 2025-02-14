@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { CardExpense as PrismaCardExpense, Prisma } from '@prisma/client';
+
+interface ExtendedCardExpense extends PrismaCardExpense {
+  endRecurrenceDate: Date | null;
+  parcela_atual?: number;
+  total_parcelas?: number;
+}
 
 console.log('Prisma importado:', !!prisma);
 console.log('Métodos disponíveis:', Object.keys(prisma));
@@ -99,7 +106,7 @@ export async function GET(request: NextRequest) {
       orderBy: {
         dueDate: 'desc',
       },
-    }) as CardExpense[];
+    }) as ExtendedCardExpense[];
 
     // Data limite para despesas fixas sem data final (12 meses a partir de hoje)
     const defaultEndDate = new Date();
@@ -117,11 +124,11 @@ export async function GET(request: NextRequest) {
     });
 
     // Processar todas as despesas
-    const processedExpenses: CardExpense[] = [];
+    const processedExpenses: ExtendedCardExpense[] = [];
     const processedExpenseKeys = new Set<string>();
 
     // Função para gerar chave única considerando mais atributos
-    const generateUniqueKey = (expense: CardExpense & { parcela_atual?: number }) => {
+    const generateUniqueKey = (expense: ExtendedCardExpense & { parcela_atual?: number }) => {
       const baseKey = `${expense.id}-${Number(expense.value)}-${expense.dueDate.toISOString().split('T')[0]}`;
       const parcelaKey = expense.parcela_atual ? `-${expense.parcela_atual}` : '';
       const descriptionKey = expense.description ? `-${expense.description}` : '';
@@ -129,12 +136,12 @@ export async function GET(request: NextRequest) {
     };
 
     // Função para processar despesas
-    const processExpense = (expense: CardExpense) => {
+    const processExpense = (expense: ExtendedCardExpense) => {
       console.log(`🔍 Processando despesa: ${expense.id}`, {
         valor: Number(expense.value),
         dataVencimento: expense.dueDate,
         fixa: expense.fixed,
-        parcelada: expense.installments > 1,
+        parcelada: expense.installments && expense.installments > 1,
         descricao: expense.description
       });
 
@@ -153,7 +160,7 @@ export async function GET(request: NextRequest) {
       // Caso 2: Despesa parcelada
       if (expense.installments && expense.installments > 1) {
         const valorTotal = Number(expense.value);
-        const valorParcela = valorTotal / expense.installments;
+        const valorParcela = new Prisma.Decimal(valorTotal / expense.installments);
         
         for (let i = 0; i < expense.installments; i++) {
           const dueDate = new Date(expense.dueDate);
@@ -196,7 +203,7 @@ export async function GET(request: NextRequest) {
               ...expense,
               date: originalDate,
               dueDate: currentDueDate,
-              value: Number(expense.value)
+              value: expense.value
             };
 
             const uniqueKey = generateUniqueKey(recurrentExpense);
@@ -250,118 +257,55 @@ export async function GET(request: NextRequest) {
       id: expense.id,
       valor: Number(expense.value),
       dataVencimento: expense.dueDate,
-      parcela: `${expense.parcela_atual}/${expense.total_parcelas}`,
-      descricao: expense.description
+      descricao: expense.description,
+      fixa: expense.fixed,
+      parcelada: !!expense.installments,
+      parcelas: expense.installments,
+      parcelaAtual: expense.parcela_atual,
+      totalParcelas: expense.total_parcelas
     })));
 
-    console.log('📊 Resumo de Processamento:', {
-      totalDespesasProcessadas: processedExpenses.length,
-      valorTotal: processedExpenses.reduce((sum, expense) => sum + Number(expense.value), 0)
-    });
-
-    console.log('Processamento de despesas:', {
-      totalDespesas: processedExpenses.length,
-      detalhes: processedExpenses.map(expense => ({
-        id: expense.id,
-        valor: Number(expense.value),
-        dataVencimento: expense.dueDate,
-        parcelas: {
-          atual: expense.parcela_atual,
-          total: expense.total_parcelas
-        },
-        descricao: expense.description,
-        categoria: expense.category,
-        subcategoria: expense.subcategory
-      }))
-    });
-
-    console.log('Detalhamento do processamento de despesas:', {
-      totalDespesas: processedExpenses.length,
-      detalhes: processedExpenses.map(expense => ({
-        id: expense.id,
-        valor: Number(expense.value),
-        dataVencimento: expense.dueDate,
-        parcelas: {
-          atual: expense.parcela_atual,
-          total: expense.total_parcelas
-        },
-        descricao: expense.description,
-        categoria: expense.category,
-        subcategoria: expense.subcategory
-      }))
-    });
-
-    console.log('🧮 Parcela:', {
-      valor: Number(processedExpenses[0].value),
-      parcela: `${processedExpenses[0].parcela_atual}/${processedExpenses[0].total_parcelas}`,
-      descricao: processedExpenses[0].description,
-      dataVencimento: processedExpenses[0].dueDate
-    });
-
-    console.log('🔢 Verificação Final:', {
-      totalCalculado: totalBillValue,
-      quantidadeDespesas: processedExpenses.length,
-      valorEsperado: 423.75,
-      diferencaAbsoluta: Math.abs(totalBillValue - 423.75)
-    });
-
-    // Adicionar log de todas as despesas do cartão para comparação
+    // Buscar todas as despesas do cartão no período para comparação
     const allCardExpenses = await prisma.cardExpense.findMany({
-      where: { 
+      where: {
         cardId: cardId,
         dueDate: {
-          gte: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
-          lte: new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0)
-        }
+          gte: expandedStartDate,
+          lte: expandedEndDate,
+        },
       },
-      select: {
-        id: true,
-        value: true,
-        date: true,
-        dueDate: true,
-        description: true,
-        installments: true
-      }
+      orderBy: {
+        dueDate: 'desc',
+      },
     });
 
     console.log('🕵️ Todas as despesas do cartão no período:', allCardExpenses.map(expense => ({
       id: expense.id,
       valor: Number(expense.value),
       dataVencimento: expense.dueDate,
-      parcelas: expense.installments,
+      fixa: expense.fixed,
+      parcelada: !!expense.installments,
       descricao: expense.description
     })));
 
     return NextResponse.json({
-      totalBillValue,
-      processedExpenses: processedExpenses.map(expense => ({
+      billValue: totalBillValue,
+      expenses: processedExpenses.map(expense => ({
         id: expense.id,
         value: Number(expense.value),
-        date: expense.date?.toISOString(),
-        dueDate: expense.dueDate?.toISOString(),
+        dueDate: expense.dueDate,
         description: expense.description,
-        category: expense.category,
-        subcategory: expense.subcategory,
+        fixed: expense.fixed,
         installments: expense.installments,
         parcela_atual: expense.parcela_atual,
         total_parcelas: expense.total_parcelas
       }))
     });
   } catch (error) {
-    console.error('Erro detalhado ao buscar valor da fatura:', error);
-    
-    // Capturar detalhes específicos do erro
-    const errorDetails = error instanceof Error 
-      ? {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        }
-      : { message: 'Erro desconhecido' };
-
-    return NextResponse.json({ 
-      error: 'Erro interno do servidor',
-      errorDetails
-    }, { status: 500 });
+    console.error('Erro ao calcular valor da fatura:', error);
+    return NextResponse.json(
+      { error: 'Não foi possível calcular o valor da fatura.' },
+      { status: 500 }
+    );
   }
 }

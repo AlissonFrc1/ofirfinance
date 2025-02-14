@@ -17,9 +17,14 @@ interface TransactionListProps {
 
 export function TransactionList({ onEdit }: TransactionListProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  // Calcula startDate e endDate com base no mês atual
+  const startDate = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-01`;
+  const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).toISOString().split('T')[0];
+
   const { transactions, loading, error } = useTransactions({
-    month: currentMonth.getMonth() + 1,
-    year: currentMonth.getFullYear(),
+    startDate,
+    endDate,
   });
 
   const monthYear = currentMonth.toLocaleDateString("pt-BR", {

@@ -20,9 +20,14 @@ const COLORS = ["#3FBC8B", "#D14D72", "#FFB547", "#0A4D68", "#C4A962"];
 export function TransactionCharts() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // Calcula startDate e endDate com base no mês e ano selecionados
+  const startDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+  const endDate = new Date(selectedYear, selectedMonth, 0).toISOString().split('T')[0];
+
   const { transactions, loading, error, totals, byCategory } = useTransactions({
-    month: selectedMonth,
-    year: selectedYear,
+    startDate,
+    endDate,
   });
 
   // Dados para o gráfico de barras (Receitas vs Despesas)

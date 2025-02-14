@@ -10,7 +10,7 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
-interface CardExpense extends PrismaCardExpense {
+interface ExtendedCardExpense extends PrismaCardExpense {
   endRecurrenceDate: Date | null;
   parcela_atual?: number;
   total_parcelas?: number;
@@ -31,7 +31,7 @@ interface FormattedCardExpense {
   endRecurrenceDate: string | null;
   parcela_atual?: number;
   total_parcelas?: number;
-  originalExpense: CardExpense;
+  originalExpense: ExtendedCardExpense;
 }
 
 interface GroupedExpenses {
@@ -98,7 +98,7 @@ export async function GET(request: Request) {
       orderBy: {
         dueDate: 'desc',
       },
-    }) as CardExpense[];
+    }) as ExtendedCardExpense[];
 
     // Log detalhado para investigar dueDate
     console.log('🕵️ Despesas encontradas no backend:', baseExpenses.map(expense => ({
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
     defaultEndDate.setMonth(defaultEndDate.getMonth() + 12);
 
     // Processar todas as despesas
-    let processedExpenses: CardExpense[] = [];
+    let processedExpenses: ExtendedCardExpense[] = [];
     
     for (const expense of baseExpenses) {
       // Caso 1: Despesa normal (não parcelada e não fixa)
@@ -207,7 +207,7 @@ export async function GET(request: Request) {
     }
 
     // Agrupar por mês
-    const groupedExpenses = processedExpenses.reduce((acc: Record<string, GroupedExpenses>, expense: CardExpense) => {
+    const groupedExpenses = processedExpenses.reduce((acc: Record<string, GroupedExpenses>, expense: ExtendedCardExpense) => {
       const month = new Date(expense.dueDate);
       month.setDate(1); // Primeiro dia do mês
       month.setHours(0, 0, 0, 0); // Zerar horas
@@ -248,34 +248,19 @@ export async function GET(request: Request) {
 
     console.group('🔍 Resultado Final da API - Histórico de Cartão');
     console.log('Total de grupos:', result.length);
-    
-    result.forEach((grupo, index) => {
-      console.group(`Grupo ${index}`);
-      console.log('Mês:', grupo.month);
-      console.log('Total do mês:', grupo.total);
-      console.log('Quantidade de despesas:', grupo.expenses.length);
-      
-      grupo.expenses.forEach((despesa, expenseIndex) => {
-        console.group(`Despesa ${expenseIndex}`);
-        console.log('Descrição:', despesa.description);
-        console.log('Valor:', despesa.value);
-        console.log('Parcelas:', despesa.installments);
-        console.log('Parcela atual:', despesa.parcela_atual);
-        console.log('Total de parcelas:', despesa.total_parcelas);
-        console.log('Objeto completo:', despesa);
-        console.groupEnd();
-      });
-      
-      console.groupEnd();
+    result.forEach(group => {
+      console.log(`📅 Mês: ${group.month.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`);
+      console.log(`💰 Total: ${formatCurrency(group.total)}`);
+      console.log(`📝 Despesas: ${group.expenses.length}`);
     });
-    
     console.groupEnd();
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('Erro ao buscar histórico:', error);
-    return NextResponse.json({
-      error: 'Erro ao buscar histórico'
-    }, { status: 500 });
+    console.error('Erro ao buscar histórico do cartão:', error);
+    return NextResponse.json(
+      { error: 'Não foi possível buscar o histórico do cartão.' },
+      { status: 500 }
+    );
   }
 } 
