@@ -58,28 +58,28 @@ export function MonthYearPicker({
   });
 
   return (
-    <div className={`inline-flex items-center gap-2 bg-primary rounded-lg px-3 py-1 z-[9999] ${className}`}>
+    <div className={`inline-flex items-center gap-1 bg-primary rounded-lg px-2 py-1 relative md:static z-0 text-xs md:text-sm ${className}`}>
       <button
         onClick={handlePreviousMonth}
-        className="p-1 text-white hover:opacity-80 transition-opacity"
+        className="p-0.5 md:p-1 text-white hover:opacity-80 transition-opacity"
       >
-        <ChevronLeftIcon className="w-4 h-4" />
+        <ChevronLeftIcon className="w-3 h-3 md:w-4 md:h-4" />
       </button>
 
       <div className="flex items-center gap-1">
-        <span className="text-white capitalize text-sm">
+        <span className="text-white capitalize">
           {monthName}
         </span>
-        <span className="text-white ml-1 text-sm">
+        <span className="text-white">
           {currentYear}
         </span>
       </div>
 
       <button
         onClick={handleNextMonth}
-        className="p-1 text-white hover:opacity-80 transition-opacity"
+        className="p-0.5 md:p-1 text-white hover:opacity-80 transition-opacity"
       >
-        <ChevronRightIcon className="w-4 h-4" />
+        <ChevronRightIcon className="w-3 h-3 md:w-4 md:h-4" />
       </button>
     </div>
   );
