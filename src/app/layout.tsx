@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ClientLayout } from './client-layout'
 import { Toaster } from 'react-hot-toast';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -10,39 +11,39 @@ export const metadata = {
   description: 'Sistema de gestão financeira inteligente e profissional',
 }
 
-function AppLayout({ children }: { children: React.ReactNode }) {
-  return <ClientLayout>{children}</ClientLayout>;
-}
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" className="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body suppressHydrationWarning className={`${inter.className} bg-background text-text-primary min-h-screen overflow-x-hidden`}>
-        <AppLayout>{children}</AppLayout>
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            success: {
-              style: {
-                background: '#22c55e',
-                color: 'white',
+      <body suppressHydrationWarning className={`${inter.className} min-h-screen overflow-x-hidden`}>
+        <ThemeProvider>
+          <div className="min-h-screen bg-background text-text-primary transition-colors duration-200">
+            <ClientLayout>{children}</ClientLayout>
+          </div>
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              success: {
+                style: {
+                  background: '#22c55e',
+                  color: 'white',
+                },
               },
-            },
-            error: {
-              style: {
-                background: '#ef4444',
-                color: 'white',
+              error: {
+                style: {
+                  background: '#ef4444',
+                  color: 'white',
+                },
               },
-            },
-          }}
-        />
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   )

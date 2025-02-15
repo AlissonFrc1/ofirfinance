@@ -427,8 +427,8 @@ export function TransactionForm({ type, onClose, onSubmit, cards }: TransactionF
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card-bg rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-[1.5rem] font-semibold text-text-primary">
             {type === "expense"
@@ -512,7 +512,7 @@ export function TransactionForm({ type, onClose, onSubmit, cards }: TransactionF
                     }}
                     className="sr-only peer"
                   />
-                  <div className="w-full h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-[3.25rem]">
+                  <div className="w-full h-6 bg-background rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card-bg after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.75rem] text-gray-600">
                       {formData.fixed ? "Fixa" : ""}
                     </span>
@@ -563,7 +563,7 @@ export function TransactionForm({ type, onClose, onSubmit, cards }: TransactionF
                     }}
                     className="sr-only peer"
                   />
-                  <div className="w-full h-6 bg-gray-200 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-[3.25rem]">
+                  <div className="w-full h-6 bg-background rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-card-bg after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full">
                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.75rem] text-gray-600">
                       {formData.fixed ? "Fixa" : ""}
                     </span>
@@ -815,7 +815,7 @@ export function TransactionForm({ type, onClose, onSubmit, cards }: TransactionF
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-[0.85rem] text-text-primary hover:bg-gray-100 rounded-lg transition-colors"
+              className="px-4 py-2 text-[0.85rem] text-text-primary hover:bg-background/50 rounded-lg transition-colors"
             >
               Cancelar
             </button>

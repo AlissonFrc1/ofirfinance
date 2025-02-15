@@ -77,7 +77,7 @@ export function TransactionList({ onEdit }: TransactionListProps) {
       <main className="pl-[280px] pt-20 p-8">
         <div className="max-w-[1200px] mx-auto">
           <div className="space-y-6">
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="card">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-text-primary">
                   Lista de Transações

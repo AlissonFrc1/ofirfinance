@@ -596,7 +596,7 @@ function CardsPageContent() {
 
         {/* Gráfico de Despesas */}
         <div className="w-full px-4 mb-8">
-          <div className="bg-white rounded-lg p-4 shadow-md w-full">
+          <div className="bg-card-bg rounded-lg p-4 shadow-md w-full">
             <ExpensePieChart 
               cards={cards} 
               currentMonth={currentMonth}
@@ -610,7 +610,7 @@ function CardsPageContent() {
           {cards.map((card) => (
             <div 
               key={card.id} 
-              className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border-2 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+              className="relative bg-card-bg rounded-2xl shadow-2xl overflow-hidden border-2 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
               style={{ 
                 backgroundColor: card.color, 
                 borderColor: `${card.color}80`,
@@ -620,7 +620,7 @@ function CardsPageContent() {
             >
               {/* Chip de cartão */}
               <div className="absolute top-6 right-6 w-16 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg shadow-md transform rotate-12">
-                <div className="w-full h-2 bg-white/30 absolute top-1/2 transform -translate-y-1/2"></div>
+                <div className="w-full h-2 bg-text-primary/30 absolute top-1/2 transform -translate-y-1/2"></div>
               </div>
 
               {/* Conteúdo do cartão */}
@@ -686,19 +686,19 @@ function CardsPageContent() {
                         setSelectedCard(card);
                         setShowHistory(card.id);
                       }}
-                      className="px-3 py-1.5 text-[0.65rem] bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-[0.65rem] bg-text-primary/20 hover:bg-text-primary/30 rounded-lg transition-colors"
                     >
                       Histórico
                     </button>
                     <button 
                       onClick={() => setShowBillPayment(card)}
-                      className="px-3 py-1.5 text-[0.65rem] bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-[0.65rem] bg-text-primary/20 hover:bg-text-primary/30 rounded-lg transition-colors"
                     >
                       Pagar
                     </button>
                     <button 
                       onClick={() => setEditingCard(card)}
-                      className="px-3 py-1.5 text-[0.65rem] bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-[0.65rem] bg-text-primary/20 hover:bg-text-primary/30 rounded-lg transition-colors"
                     >
                       <PencilIcon className="w-3.5 h-3.5" />
                     </button>

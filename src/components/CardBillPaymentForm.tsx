@@ -210,8 +210,8 @@ export function CardBillPaymentForm({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-sm p-4 shadow-lg">
+    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card-bg rounded-xl w-full max-w-sm p-4 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-text-primary">
             Pagamento de Fatura
@@ -392,7 +392,7 @@ export function CardBillPaymentForm({
             <button 
               type="button"
               onClick={onClose}
-              className="px-2 py-1 bg-background text-text-secondary rounded-lg hover:bg-gray-100 transition-colors"
+              className="px-2 py-1 bg-background text-text-secondary rounded-lg hover:bg-background/80 transition-colors"
             >
               Cancelar
             </button>
