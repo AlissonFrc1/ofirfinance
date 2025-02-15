@@ -281,8 +281,8 @@ export function CardBill({ cardId, cardName, onClose }: CardBillProps) {
   }, [billDetails?.total]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-4xl p-4 shadow-lg">
+    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="card w-full max-w-4xl p-4 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base font-semibold text-text-primary">
             Fatura do Cartão {cardName}

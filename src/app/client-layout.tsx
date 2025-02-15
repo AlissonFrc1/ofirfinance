@@ -104,7 +104,7 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-background transition-colors duration-200">
       <Header 
         userName="João Silva" 
         notificationCount={2}

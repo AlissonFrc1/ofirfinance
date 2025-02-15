@@ -210,7 +210,7 @@ export function Sidebar() {
 
       {/* Sidebar */}
       <nav 
-        className={`fixed top-0 left-0 h-full w-[200px] bg-white shadow-xl md:shadow-none border-r border-divider z-30 transform transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-[200px] bg-card-bg border-r border-divider z-30 transition-transform duration-300 ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
@@ -245,7 +245,7 @@ export function Sidebar() {
             {showTransactionMenu && (
               <div 
                 id="transaction-type-menu"
-                className="absolute z-50 top-full left-0 right-0 mt-2 p-2 bg-white border border-divider rounded-lg shadow-lg"
+                className="absolute z-50 top-full left-0 right-0 mt-2 p-2 bg-card-bg border border-divider rounded-lg shadow-lg"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Botões de tipo de transação */}

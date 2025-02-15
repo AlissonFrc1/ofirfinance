@@ -179,8 +179,8 @@ export function CardHistory({ cardId, cardName, onClose }: Props) {
   });
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+    <div className="fixed inset-0 bg-text-primary/50 flex items-center justify-center z-50">
+      <div className="bg-card-bg rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
         <div className="p-6 border-b border-border">
           <div className="flex items-center justify-between">
             <div>

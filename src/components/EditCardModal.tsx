@@ -64,8 +64,8 @@ export function EditCardModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-sm p-4 shadow-lg">
+    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-card-bg rounded-xl w-full max-w-sm p-4 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold text-text-primary">
             Editar Cartão
@@ -164,7 +164,7 @@ export function EditCardModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              className="px-4 py-2 bg-background text-text-primary rounded hover:bg-background/80"
             >
               Cancelar
             </button>

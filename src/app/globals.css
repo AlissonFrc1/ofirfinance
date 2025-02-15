@@ -4,22 +4,58 @@
 
 @layer base {
   :root {
-    --background: #121212;
-    --card-bg: #1E1E2F;
-    --primary: #7B61FF;
-    --secondary: #FF5E57;
-    --success: #3FBC8B;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A0A0A0;
-    --divider: #272739;
+    --background: 248 249 250;
+    --card-bg: 255 255 255;
+    --text-primary: 26 29 31;
+    --text-secondary: 111 118 126;
+    --divider: 230 232 236;
+    --theme-transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+
+  .dark {
+    --background: 17 24 39;
+    --card-bg: 31 41 55;
+    --text-primary: 249 250 251;
+    --text-secondary: 209 213 219;
+    --divider: 55 65 81;
   }
 
   * {
-    @apply border-divider;
+    transition: var(--theme-transition);
   }
 
   body {
     @apply bg-background text-text-primary antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-card-bg rounded-xl border border-divider;
+  }
+
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white;
+  }
+
+  .input-base {
+    @apply bg-background border border-divider rounded-lg px-4 py-2 text-text-primary placeholder:text-text-secondary focus:outline-none focus:border-primary;
+  }
+
+  /* Estilos para inputs no modo escuro */
+  .dark input[type="text"],
+  .dark input[type="number"],
+  .dark input[type="date"],
+  .dark input[type="password"],
+  .dark input[type="email"],
+  .dark input[type="search"],
+  .dark select,
+  .dark textarea {
+    @apply bg-background text-text-primary border-divider focus:border-primary;
+  }
+
+  .dark input::placeholder {
+    @apply text-text-secondary;
   }
 }
 
@@ -29,14 +65,10 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--card-bg);
+  @apply bg-card-bg;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--divider);
+  @apply bg-divider hover:bg-text-secondary;
   border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
 }

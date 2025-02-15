@@ -82,8 +82,8 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl w-full max-w-md p-4 shadow-lg">
+    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="card w-full max-w-md p-4 shadow-lg">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-base font-semibold text-text-primary">
             {initialData ? 'Editar Cartão' : 'Novo Cartão'}
@@ -106,7 +106,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+              className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
               placeholder="Nome do cartão"
               required
               disabled={!!initialData}
@@ -121,7 +121,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
               type="text"
               value={formData.bank}
               onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
-              className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+              className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
               required
               disabled={!!initialData}
             />
@@ -142,7 +142,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
                   setFormData({ ...formData, lastDigits: numericValue });
                 }}
                 placeholder="Ex: 8890"
-                className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+                className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
                 required
                 disabled={!!initialData}
               />
@@ -163,7 +163,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
                 onChange={(e) =>
                   setFormData({ ...formData, limit: parseFloat(e.target.value) })
                 }
-                className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+                className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -185,7 +185,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
                     dueDay: parseInt(e.target.value),
                   })
                 }
-                className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+                className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -204,7 +204,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
                     closingDay: parseInt(e.target.value),
                   })
                 }
-                className="w-full px-2 py-1.5 text-[0.70rem] border rounded-md focus:ring-1 focus:ring-primary"
+                className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
                 required
               />
             </div>
@@ -239,7 +239,7 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded text-[0.70rem] hover:bg-gray-200"
+              className="px-3 py-1.5 bg-background text-text-primary rounded text-[0.70rem] hover:bg-background/80"
             >
               Cancelar
             </button>

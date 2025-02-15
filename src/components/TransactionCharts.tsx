@@ -79,7 +79,7 @@ export function TransactionCharts() {
   return (
     <div className="space-y-8">
       {/* Gráfico de Barras */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="card p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-6">
           Receitas vs Despesas
         </h2>
@@ -114,7 +114,7 @@ export function TransactionCharts() {
       </div>
 
       {/* Gráfico de Pizza */}
-      <div className="bg-white rounded-xl p-6 shadow-sm">
+      <div className="card p-6">
         <h2 className="text-lg font-semibold text-text-primary mb-6">
           Despesas por Categoria
         </h2>
