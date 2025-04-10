@@ -4,15 +4,14 @@ import { useCallback } from "react";
 import { MagnifyingGlassIcon, BellIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { useMobileMenu } from "@/contexts/MobileMenuContext";
 import { ThemeToggle } from './ThemeToggle';
+import { UserMenu } from './UserMenu';
 
 interface HeaderProps {
-  userName: string;
   notificationCount: number;
 }
 
-export function Header({ userName, notificationCount }: HeaderProps) {
+export function Header({ notificationCount }: HeaderProps) {
   const { toggleMobileMenu } = useMobileMenu();
-  const userInitial = userName.charAt(0);
 
   const handleMenuClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -45,7 +44,7 @@ export function Header({ userName, notificationCount }: HeaderProps) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <button 
             type="button"
@@ -60,13 +59,7 @@ export function Header({ userName, notificationCount }: HeaderProps) {
             )}
           </button>
 
-          <button 
-            type="button"
-            className="w-8 h-8 rounded-full bg-primary text-white font-medium flex items-center justify-center"
-            aria-label={`Menu do usuário ${userName}`}
-          >
-            {userInitial}
-          </button>
+          <UserMenu />
         </div>
       </div>
     </header>

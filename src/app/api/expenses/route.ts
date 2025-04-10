@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, Prisma, Expense } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { Decimal } from '@prisma/client/runtime/library';
 
 type ValidFields = 'value' | 'paid' | 'recurring' | 'date' | 'nextDate' | 
                   'paymentMethod' | 'category' | 'subcategory' | 
@@ -14,81 +16,104 @@ type ExpenseCreateData = {
                       string;
 };
 
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const category = searchParams.get('category');
+    const paid = searchParams.get('paid');
+
+    const where: any = {
+      userId
+    };
+
+    if (startDate && endDate) {
+      where.date = {
+        gte: new Date(startDate),
+        lte: new Date(endDate)
+      };
+    }
+
+    if (category) {
+      where.category = category;
+    }
+
+    if (paid !== null) {
+      where.paid = paid === 'true';
+    }
+
+    const expenses = await prisma.expense.findMany({
+      where,
+      orderBy: {
+        date: 'desc'
+      }
+    });
+
+    return NextResponse.json(expenses);
+  } catch (error) {
+    console.error('Erro ao buscar despesas:', error);
+    return NextResponse.json(
+      { error: 'Erro ao buscar despesas' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const expenseData = await request.json();
-
-    // Validar dados da despesa
-    if (!expenseData.value || !expenseData.category) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { message: 'Valor e categoria são obrigatórios' }, 
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+    const data: ExpenseCreateData = await request.json();
+
+    if (!data.value || !data.category || !data.paymentMethod) {
+      return NextResponse.json(
+        { error: 'Valor, categoria e método de pagamento são obrigatórios' },
         { status: 400 }
       );
     }
 
-    // Lista de campos válidos baseados no schema do Prisma
-    const validFields: ValidFields[] = [
-      'value', 'paid', 'recurring', 'date', 'nextDate', 
-      'paymentMethod', 'category', 'subcategory', 
-      'fixed', 'installments', 'description', 
-      'dueDay'
-    ];
-
-    // Remover campos inválidos ou nulos
-    const cleanedExpenseData: ExpenseCreateData = {};
-    for (const [key, value] of Object.entries(expenseData)) {
-      if (validFields.includes(key as ValidFields) && value !== null && value !== undefined) {
-        (cleanedExpenseData as any)[key] = value;
-      }
-    }
-
-    // Converter data para DateTime completo com validação
-    if (typeof cleanedExpenseData.date === 'string') {
-      const parsedDate = new Date(cleanedExpenseData.date);
-      
-      // Verificar se a data é válida
-      if (isNaN(parsedDate.getTime())) {
-        return NextResponse.json(
-          { message: 'Data inválida' }, 
-          { status: 400 }
-        );
-      }
-
-      // Ajustar para o início do dia no fuso horário UTC
-      cleanedExpenseData.date = new Date(
-        Date.UTC(
-          parsedDate.getFullYear(), 
-          parsedDate.getMonth(), 
-          parsedDate.getDate()
-        )
-      );
-    }
-
-    // Criar despesa no banco de dados
-    const newExpense = await prisma.expense.create({
+    const expense = await prisma.expense.create({
       data: {
-        value: new Prisma.Decimal(expenseData.value),
-        date: cleanedExpenseData.date || new Date(),
-        paymentMethod: cleanedExpenseData.paymentMethod || 'MONEY',
-        category: cleanedExpenseData.category!,
-        subcategory: cleanedExpenseData.subcategory || 'OUTROS',
-        paid: cleanedExpenseData.paid ?? false,
-        recurring: cleanedExpenseData.recurring ?? false,
-        fixed: cleanedExpenseData.fixed ?? false,
-        installments: cleanedExpenseData.installments,
-        description: cleanedExpenseData.description,
-        dueDay: cleanedExpenseData.dueDay,
-        nextDate: cleanedExpenseData.nextDate instanceof Date ? cleanedExpenseData.nextDate : 
-                 typeof cleanedExpenseData.nextDate === 'string' ? new Date(cleanedExpenseData.nextDate) : 
-                 undefined
+        value: new Decimal(data.value as string),
+        date: new Date(data.date as string),
+        nextDate: data.nextDate ? new Date(data.nextDate as string) : null,
+        paymentMethod: data.paymentMethod,
+        category: data.category,
+        subcategory: data.subcategory || 'OUTROS',
+        paid: data.paid ?? false,
+        recurring: data.recurring ?? false,
+        fixed: data.fixed ?? false,
+        installments: data.installments,
+        description: data.description,
+        dueDay: data.dueDay,
+        userId
       }
     });
 
-    return NextResponse.json(newExpense, { status: 201 });
+    return NextResponse.json(expense);
   } catch (error) {
-    console.error('Erro ao registrar despesa:', error);
+    console.error('Erro ao criar despesa:', error);
     return NextResponse.json(
-      { message: 'Erro interno do servidor', error: String(error) }, 
+      { error: 'Erro ao criar despesa' },
       { status: 500 }
     );
   }

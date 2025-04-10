@@ -16,6 +16,7 @@ export interface CardFormData {
   dueDay: number;
   closingDay: number;
   color: string;
+  brand: string;
   bank: string;
 }
 
@@ -59,10 +60,19 @@ const COLORS = [
   '#8B0000'    // Vermelho escuro (borgonha)
 ];
 
+const CARD_BRANDS = [
+  'Visa',
+  'Mastercard',
+  'American Express',
+  'Elo',
+  'Hipercard',
+  'Outros'
+];
+
 export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
   console.log('=== INÍCIO DEBUG FORMULÁRIO DE CARTÃO ===');
-  console.log('1. Dados iniciais recebidos:', initialData);
-  
+  console.log('Dados iniciais recebidos:', initialData);
+
   const [formData, setFormData] = useState<CardFormData>({
     name: initialData?.name || '',
     lastDigits: initialData?.lastDigits || '',
@@ -70,61 +80,66 @@ export function CardForm({ onSubmit, onClose, initialData }: CardFormProps) {
     dueDay: initialData?.dueDay || 1,
     closingDay: initialData?.closingDay || 1,
     color: initialData?.color || COLORS[0],
-    bank: initialData?.bank || '',
+    brand: initialData?.brand || CARD_BRANDS[0],
+    bank: initialData?.bank || ''
   });
 
-  console.log('2. Estado inicial do formulário:', formData);
-  console.log('=== FIM DEBUG FORMULÁRIO DE CARTÃO ===');
+  console.log('Estado inicial do formulário:', formData);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Dados do formulário no envio:', formData);
     onSubmit(formData);
   };
 
   return (
-    <div className="fixed inset-0 bg-text-primary/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="card w-full max-w-md p-4 shadow-lg">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-base font-semibold text-text-primary">
-            {initialData ? 'Editar Cartão' : 'Novo Cartão'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-text-secondary hover:text-text-primary focus:outline-none"
-          >
-            <XMarkIcon className="w-5 h-5" />
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-background rounded-xl w-full max-w-md">
+        <div className="p-6 border-b border-divider">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium text-text-primary">
+              {initialData ? 'Editar Cartão' : 'Novo Cartão'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-2">
-          {/* Nome do Cartão */}
-          <div className="mb-2">
-            <label className="block text-[0.70rem] font-medium text-text-primary mb-1">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-[0.70rem] text-text-secondary mb-1">
               Nome do Cartão
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Nubank"
               className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
-              placeholder="Nome do cartão"
               required
-              disabled={!!initialData}
             />
           </div>
 
           <div>
             <label className="block text-[0.70rem] text-text-secondary mb-1">
-              Banco/Instituição
+              Bandeira
             </label>
-            <input
-              type="text"
-              value={formData.bank}
-              onChange={(e) => setFormData({ ...formData, bank: e.target.value })}
+            <select
+              value={formData.brand}
+              onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
               className="w-full px-2 py-1.5 text-[0.70rem] bg-background border border-divider rounded-md focus:ring-1 focus:ring-primary text-text-primary"
               required
-              disabled={!!initialData}
-            />
+            >
+              {CARD_BRANDS.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

@@ -1,18 +1,26 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/prisma';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
-});
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const data = await request.json();
     console.log('Dados recebidos para criar cartão:', data);
 
-    // Validação dos dados
     if (!data.name || !data.lastDigits || !data.limit || 
-        !data.dueDay || !data.closingDay) {
+        !data.dueDay || !data.closingDay || !data.brand) {
       console.error('Dados inválidos:', data);
       return NextResponse.json({
         error: 'Todos os campos são obrigatórios',
@@ -20,30 +28,26 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // Converte os dados para o formato correto
-    const cardData = {
-      name: String(data.name),
-      brand: String(data.bank),
-      lastDigits: String(data.lastDigits),
-      limit: Number(data.limit),
-      dueDay: Number(data.dueDay),
-      closingDay: Number(data.closingDay),
-      color: data.color || '#000000'
-    };
-
-    console.log('Tentando criar cartão com os dados:', cardData);
-
-    const result = await prisma.card.create({
-      data: cardData
+    const card = await prisma.card.create({
+      data: {
+        name: data.name,
+        brand: data.brand,
+        lastDigits: data.lastDigits,
+        limit: Number(data.limit),
+        dueDay: Number(data.dueDay),
+        closingDay: Number(data.closingDay),
+        color: data.color || '#000000',
+        bank: data.brand,
+        userId
+      }
     });
 
-    console.log('Cartão criado com sucesso:', result);
-    return NextResponse.json(result, { status: 201 });
-
+    console.log('Cartão criado com sucesso:', card);
+    return NextResponse.json(card, { status: 201 });
   } catch (error) {
-    console.error('Erro detalhado ao criar cartão:', error);
+    console.error('Erro ao criar cartão:', error);
     
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error instanceof PrismaClientKnownRequestError) {
       console.error('Erro do Prisma:', {
         code: error.code,
         message: error.message,
@@ -67,180 +71,75 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const cards = await prisma.card.findMany();
+    const session = await getServerSession(authOptions);
     
-    // Processar cada cartão para adicionar valor da fatura atual
-    const cardsWithBillValue = await Promise.all(cards.map(async (card) => {
-      const currentDate = new Date();
-      const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
 
-      // Buscar todas as despesas do cartão
-      const baseExpenses = await prisma.cardExpense.findMany({
-        where: {
-          cardId: card.id,
-          OR: [
-            // Despesas normais dentro do período
-            {
-              dueDate: {
-                gte: startDate,
-                lte: endDate,
-              },
-              fixed: false,
-              installments: null
-            },
-            // Despesas parceladas que podem ter parcelas no período
-            {
-              AND: [
-                { installments: { gt: 1 } },
-                {
-                  dueDate: {
-                    gte: new Date(startDate.getFullYear(), startDate.getMonth() - 12, 1)
-                  }
-                }
-              ]
-            },
-            // Despesas fixas que começam antes ou durante o período
-            {
-              fixed: true,
-              date: {
-                lte: endDate,
-              },
-            },
-            // Despesas com data final definida, independente do status fixed
-            {
-              endRecurrenceDate: {
-                not: null,
-                gte: startDate,
-                lte: endDate
-              }
-            }
-          ],
-        },
-        orderBy: {
-          dueDate: 'desc',
-        },
-      });
-
-      // Data limite para despesas fixas sem data final (12 meses a partir de hoje)
-      const defaultEndDate = new Date();
-      defaultEndDate.setMonth(defaultEndDate.getMonth() + 12);
-
-      // Processar todas as despesas
-      let processedExpenses: any[] = [];
-      
-      for (const expense of baseExpenses) {
-        // Caso 1: Despesa normal (não parcelada e não fixa)
-        if (!expense.fixed && (!expense.installments || expense.installments <= 1)) {
-          if (expense.dueDate >= startDate && expense.dueDate <= endDate) {
-            processedExpenses.push(expense);
-          }
-          continue;
-        }
-
-        // Caso 2: Despesa parcelada
-        if (expense.installments && expense.installments > 1) {
-          const valorParcela = Number(expense.value) / expense.installments;
-          
-          for (let i = 0; i < expense.installments; i++) {
-            const dueDate = new Date(expense.dueDate);
-            dueDate.setMonth(dueDate.getMonth() + i);
-
-            if (dueDate >= startDate && dueDate <= endDate) {
-              const parcelaAtual = i + 1;
-              processedExpenses.push({
-                ...expense,
-                dueDate: dueDate,
-                value: expense.value,
-                parcela_atual: parcelaAtual,
-                total_parcelas: expense.installments,
-                description: expense.description
-              });
-            }
-          }
-          continue;
-        }
-
-        // Caso 3: Despesa fixa
-        if (expense.fixed) {
-          const startDateObj = startDate;
-          const endDateObj = endDate;
-          const expenseStartDate = new Date(expense.date);
-          const endRecurrenceDate = expense.endRecurrenceDate 
-            ? new Date(expense.endRecurrenceDate) 
-            : defaultEndDate;
-
-          let currentDate = new Date(expenseStartDate);
-
-          while (currentDate <= endRecurrenceDate && currentDate <= endDateObj) {
-            if (currentDate >= startDateObj && currentDate <= endDateObj) {
-              processedExpenses.push({
-                ...expense,
-                date: new Date(currentDate),
-                dueDate: new Date(currentDate)
-              });
-            }
-
-            currentDate = new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth() + 1,
-              currentDate.getDate()
-            );
-          }
-        }
-
-        // Caso 4: Despesas com data final, independente de ser fixa
-        if (expense.endRecurrenceDate) {
-          const startDateObj = startDate;
-          const endDateObj = endDate;
-          const expenseStartDate = new Date(expense.date);
-          const endRecurrenceDate = new Date(expense.endRecurrenceDate);
-
-          let currentDate = new Date(expenseStartDate);
-
-          while (currentDate <= endRecurrenceDate && currentDate <= endDateObj) {
-            if (currentDate >= startDateObj && currentDate <= endDateObj) {
-              processedExpenses.push({
-                ...expense,
-                date: new Date(currentDate),
-                dueDate: new Date(currentDate)
-              });
-            }
-
-            currentDate = new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth() + 1,
-              currentDate.getDate()
-            );
+    const userId = session.user.id;
+    
+    const cards = await prisma.card.findMany({
+      where: { userId },
+      include: {
+        expenses: {
+          where: {
+            paid: false
           }
         }
       }
-
-      // Calcular valor total da fatura
-      const currentBill = processedExpenses.reduce((total, expense) => {
-        return total + Number(expense.value);
-      }, 0);
-
-      return {
-        ...card,
-        currentBill: Number(currentBill.toFixed(2))
-      };
+    });
+    
+    const cardsWithBills = cards.map(card => ({
+      ...card,
+      currentBill: card.expenses.reduce((sum: number, expense: { value: { toNumber: () => number } }) => 
+        sum + expense.value.toNumber(), 0)
     }));
 
-    return NextResponse.json(cardsWithBillValue);
+    return NextResponse.json(cardsWithBills);
   } catch (error) {
     console.error('Erro ao buscar cartões:', error);
-    return NextResponse.json({
-      error: 'Erro ao buscar cartões',
-      message: error instanceof Error ? error.message : 'Erro desconhecido'
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Erro ao buscar cartões' },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request: Request) {
   try {
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    
+    // Verificar se o usuário está autenticado
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const data = await request.json();
     console.log('Dados recebidos para atualização:', data);
+    
+    // Verificar se o cartão pertence ao usuário
+    const card = await prisma.card.findFirst({
+      where: {
+        id: data.id,
+        userId
+      }
+    });
+
+    if (!card) {
+      return NextResponse.json(
+        { error: 'Cartão não encontrado ou não pertence a este usuário' },
+        { status: 403 }
+      );
+    }
     
     const result = await prisma.card.update({
       where: { id: data.id },
@@ -248,11 +147,15 @@ export async function PUT(request: Request) {
         limit: Number(data.limit),
         dueDay: Number(data.dueDay),
         closingDay: Number(data.closingDay),
+        name: data.name,
+        lastDigits: data.lastDigits,
+        brand: data.brand,
+        bank: data.brand,
         color: data.color
       }
     });
-
-    console.log('Cartão atualizado:', result);
+    
+    console.log('Cartão atualizado com sucesso:', result);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Erro ao atualizar cartão:', error);
@@ -265,24 +168,58 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    
+    // Verificar se o usuário está autenticado
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
     if (!id) {
       return NextResponse.json({
-        error: 'ID não fornecido'
+        error: 'ID do cartão não fornecido'
       }, { status: 400 });
     }
-
-    await prisma.card.delete({
-      where: { id }
+    
+    // Verificar se o cartão pertence ao usuário
+    const card = await prisma.card.findFirst({
+      where: {
+        id,
+        userId
+      }
     });
 
-    return NextResponse.json({ success: true });
+    if (!card) {
+      return NextResponse.json(
+        { error: 'Cartão não encontrado ou não pertence a este usuário' },
+        { status: 403 }
+      );
+    }
+    
+    // Primeiro excluir todas as despesas relacionadas
+    await prisma.cardExpense.deleteMany({
+      where: { cardId: id }
+    });
+    
+    // Depois excluir o cartão
+    const result = await prisma.card.delete({
+      where: { id }
+    });
+    
+    console.log('Cartão excluído com sucesso:', result);
+    return NextResponse.json({ message: 'Cartão excluído com sucesso' });
   } catch (error) {
-    console.error('Erro ao deletar cartão:', error);
+    console.error('Erro ao excluir cartão:', error);
     return NextResponse.json({
-      error: 'Erro ao deletar cartão',
+      error: 'Erro ao excluir cartão',
       message: error instanceof Error ? error.message : 'Erro desconhecido'
     }, { status: 500 });
   }

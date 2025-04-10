@@ -294,7 +294,7 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <Header userName="João Silva" notificationCount={2} />
+      <Header notificationCount={2} />
       <main className="relative md:pl-[20px] pt-5 px-4 space-y-6 max-w-screen-xl mx-auto">
         <div className="w-full">
           <div className="flex items-center justify-between mb-8">

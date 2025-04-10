@@ -72,7 +72,7 @@ export function TransactionList({ onEdit }: TransactionListProps) {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <Header userName="João Silva" notificationCount={2} />
+      <Header notificationCount={2} />
 
       <main className="pl-[280px] pt-20 p-8">
         <div className="max-w-[1200px] mx-auto">

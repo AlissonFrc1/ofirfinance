@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface Transaction {
   id: string;
@@ -49,15 +50,18 @@ export function useTransactions({
   startDate,
   endDate,
 }: UseTransactionsProps = {}): UseTransactionsReturn {
+  const { data: session } = useSession();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [cards, setCards] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchTransactions();
-    fetchCards();
-  }, [startDate, endDate]);
+    if (session) {
+      fetchTransactions();
+      fetchCards();
+    }
+  }, [startDate, endDate, session]);
 
   const fetchTransactions = async () => {
     try {
@@ -69,7 +73,14 @@ export function useTransactions({
         queryParams.append('endDate', endDate);
       }
 
-      const response = await fetch(`/api/transactions/history?${queryParams}`);
+      const response = await fetch(`/api/transactions/history?${queryParams}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (!response.ok) throw new Error('Erro ao buscar transações');
       
       const data = await response.json();
@@ -85,7 +96,14 @@ export function useTransactions({
 
   const fetchCards = async () => {
     try {
-      const response = await fetch('/api/cards');
+      const response = await fetch('/api/cards', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (!response.ok) throw new Error('Erro ao buscar cartões');
       const data = await response.json();
       setCards(data);
@@ -102,8 +120,9 @@ export function useTransactions({
       const response = await fetch('/api/transactions', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
 
@@ -155,8 +174,9 @@ export function useTransactions({
       const response = await fetch(`/api/transactions/${id}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(updatePayload),
       });
 
