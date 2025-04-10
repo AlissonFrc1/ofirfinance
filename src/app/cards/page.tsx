@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { MonthYearPicker } from '@/components/MonthYearPicker';
 import { MonthFilterProvider, useMonthFilter } from '@/contexts/MonthFilterContext';
+import { toast } from 'react-hot-toast';
 
 interface CardExpense {
   id: string;
@@ -187,20 +188,22 @@ function CardsPageContent() {
 
   const fetchCards = async () => {
     try {
-      const response = await fetch('/api/cards');
-      if (!response.ok) throw new Error('Erro ao buscar cartões');
-      const data = await response.json();
-      
-      // Buscar as despesas iniciais dos cartões
-      const cardsWithExpenses = await Promise.all(
-        data.map((card: CreditCard) => fetchCardExpenses(card, currentMonth, currentYear))
-      );
+      const response = await fetch('/api/cards', {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
 
-      setCards(cardsWithExpenses);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar cartões');
+      }
+
+      const data = await response.json();
+      setCards(data);
     } catch (error) {
       console.error('Erro ao buscar cartões:', error);
-    } finally {
-      setLoading(false);
+      toast.error('Erro ao buscar cartões');
     }
   };
 
@@ -269,18 +272,24 @@ function CardsPageContent() {
       const response = await fetch('/api/cards', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data),
+        credentials: 'include',
+        body: JSON.stringify(data)
       });
 
-      if (!response.ok) throw new Error('Erro ao criar cartão');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao criar cartão');
+      }
 
       const newCard = await response.json();
-      setCards([...cards, newCard]);
+      setCards(prevCards => [...prevCards, newCard]);
       setShowAddCard(false);
+      toast.success('Cartão criado com sucesso!');
     } catch (error) {
       console.error('Erro ao criar cartão:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao criar cartão');
     }
   };
 
@@ -288,29 +297,36 @@ function CardsPageContent() {
     if (!editingCard) return;
 
     try {
-      const response = await fetch(`/api/cards/${editingCard.id}`, {
-        method: 'PATCH',
+      const response = await fetch('/api/cards', {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id: editingCard.id,
           name: data.name,
+          brand: data.brand,
           lastDigits: data.lastDigits,
           limit: Number(data.limit),
           dueDay: Number(data.dueDay),
           closingDay: Number(data.closingDay),
           color: data.color,
-          bank: data.bank
+          bank: data.brand
         }),
       });
 
-      if (!response.ok) throw new Error('Erro ao editar cartão');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao atualizar cartão');
+      }
 
       // Atualizar a lista de cartões
       await fetchCards();
       setEditingCard(null);
+      toast.success('Cartão atualizado com sucesso!');
     } catch (error) {
       console.error('Erro ao editar cartão:', error);
+      toast.error('Erro ao atualizar cartão');
     }
   };
 
@@ -526,7 +542,7 @@ function CardsPageContent() {
     return (
       <div className="min-h-screen bg-background">
         <Sidebar />
-        <Header userName="João Silva" notificationCount={2} />
+        <Header notificationCount={2} />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-md mx-auto">
             <div className="flex items-center justify-center h-64">
@@ -541,7 +557,7 @@ function CardsPageContent() {
   return (
     <div className="min-h-screen bg-background text-text-primary">
       <Sidebar />
-      <Header userName="João Silva" notificationCount={2} />
+      <Header notificationCount={2} />
       <main className="container mx-auto px-4 py-8">
         {/* Cabeçalho */}
         <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-8">
@@ -731,6 +747,7 @@ function CardsPageContent() {
           onClose={() => setEditingCard(null)}
           initialData={{
             name: editingCard.name,
+            brand: editingCard.brand,
             lastDigits: editingCard.lastDigits,
             limit: Number(editingCard.limit),
             dueDay: Number(editingCard.dueDay),

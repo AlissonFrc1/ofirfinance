@@ -22,6 +22,7 @@ import {
 import { TransactionForm } from "./TransactionForm";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMobileMenu } from "@/contexts/MobileMenuContext";
+import { signOut } from 'next-auth/react';
 
 interface Card {
   id: string;
@@ -38,7 +39,7 @@ const menuItems = [
   {
     title: "Principal",
     items: [
-      { name: "Dashboard", href: "/", icon: ChartBarIcon },
+      { name: "Dashboard", href: "/dashboard", icon: ChartBarIcon },
       { name: "Transações", href: "/transactions", icon: BanknotesIcon },
       { name: "Carteiras", href: "/wallets", icon: WalletIcon },
     ],
@@ -57,7 +58,11 @@ const menuItems = [
     items: [
       { name: "Configurações", href: "/settings", icon: Cog6ToothIcon },
       { name: "Ajuda", href: "/help", icon: QuestionMarkCircleIcon },
-      { name: "Sair", href: "/logout", icon: ArrowLeftOnRectangleIcon },
+      { 
+        name: "Sair", 
+        onClick: () => signOut({ callbackUrl: '/login' }), 
+        icon: ArrowLeftOnRectangleIcon 
+      },
     ],
   },
 ];
@@ -279,41 +284,42 @@ export function Sidebar() {
           </div>
 
           {/* Menu Items */}
-          {menuItems.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="p-2 border-b border-divider">
-              <h3 className="text-[0.65rem] text-text-secondary uppercase mb-2 px-2">
-                {section.title}
-              </h3>
-              {section.items.map((item, itemIndex) => (
-                <Link
-                  key={itemIndex}
-                  href={item.href}
-                  onClick={closeMobileMenu}
-                  className={`
-                    group flex items-center gap-2 p-2 rounded-lg text-[0.75rem] 
-                    transition-all duration-300 ease-in-out
-                    ${pathname === item.href
-                      ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-primary/5 text-text-primary hover:text-primary hover:pl-4'}
-                    active:scale-[0.98] active:bg-primary/10
-                    focus:outline-none focus:ring-2 focus:ring-primary/30
-                  `}
-                >
-                  <item.icon 
-                    className={`
-                      w-4 h-4 transition-all duration-300 
-                      ${pathname === item.href 
-                        ? 'text-primary' 
-                        : 'group-hover:text-primary group-hover:scale-110'}
-                    `} 
-                  />
-                  <span className="transition-all duration-300 group-hover:ml-1">
-                    {item.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          ))}
+          <div className="flex-1 overflow-y-auto py-4 px-2">
+            {menuItems.map((section) => (
+              <div key={section.title} className="mb-6">
+                <h3 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-2 px-2">
+                  {section.title}
+                </h3>
+                <div className="space-y-1">
+                  {section.items.map((item) => (
+                    <div key={item.name}>
+                      {item.href ? (
+                        <Link
+                          href={item.href}
+                          className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors ${
+                            pathname === item.href
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-text-primary hover:bg-background'
+                          }`}
+                        >
+                          <item.icon className="w-5 h-5" />
+                          {item.name}
+                        </Link>
+                      ) : (
+                        <button
+                          onClick={item.onClick}
+                          className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-text-primary hover:bg-background w-full text-left transition-colors"
+                        >
+                          <item.icon className="w-5 h-5" />
+                          {item.name}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </nav>
 

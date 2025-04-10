@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    
+    // Verificar se o usuário está autenticado
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
@@ -11,7 +25,9 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
 
     // Construir o filtro base
-    const baseFilter: any = {};
+    const baseFilter: any = {
+      userId // Adicionar userId ao filtro base
+    };
     
     // Adicionar filtros condicionais
     if (startDate && endDate) {

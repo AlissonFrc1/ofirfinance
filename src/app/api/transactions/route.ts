@@ -1,14 +1,28 @@
 import { NextResponse } from 'next/server';
-import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export async function POST(request: Request) {
   try {
+    // Obter sessão do usuário
+    const session = await getServerSession(authOptions);
+    
+    // Verificar se o usuário está autenticado
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
     const data = await request.json();
     console.log('Dados recebidos:', data);
     
     // Converte o valor para Decimal
-    const value = new Prisma.Decimal(data.value);
+    const value = new Decimal(data.value);
     
     // Converte as datas para DateTime
     const date = new Date(data.date);
@@ -34,7 +48,8 @@ export async function POST(request: Request) {
           fixed: data.fixed,
           installments,
           description: data.description || undefined,
-          dueDay: data.dueDay ? parseInt(data.dueDay) : undefined
+          dueDay: data.dueDay ? parseInt(data.dueDay) : undefined,
+          userId // Associar ao usuário logado
         }
       });
     } else if (data.type === 'expense-card') {
@@ -43,6 +58,21 @@ export async function POST(request: Request) {
         // Validação dos campos obrigatórios
         if (!data.cardId || !data.dueDate) {
           throw new Error('CardId e dueDate são obrigatórios para despesas de cartão');
+        }
+
+        // Verificar se o cartão pertence ao usuário
+        const card = await prisma.card.findFirst({
+          where: {
+            id: data.cardId,
+            userId
+          }
+        });
+
+        if (!card) {
+          return NextResponse.json(
+            { error: 'Cartão não encontrado ou não pertence a este usuário' },
+            { status: 403 }
+          );
         }
 
         const cardExpenseData = {
@@ -84,7 +114,8 @@ export async function POST(request: Request) {
           fixed: data.fixed,
           installments,
           description: data.description || undefined,
-          dueDay: data.dueDay ? parseInt(data.dueDay) : undefined
+          dueDay: data.dueDay ? parseInt(data.dueDay) : undefined,
+          userId // Associar ao usuário logado
         }
       });
     }

@@ -1,8 +1,9 @@
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { ClientLayout } from './client-layout'
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { NextAuthProvider } from '@/components/providers/NextAuthProvider';
+import { AuthenticatedLayout } from '@/components/AuthenticatedLayout';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,26 +24,28 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning className={`${inter.className} min-h-screen overflow-x-hidden`}>
         <ThemeProvider>
-          <div className="min-h-screen bg-background text-text-primary transition-colors duration-200">
-            <ClientLayout>{children}</ClientLayout>
-          </div>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              success: {
-                style: {
-                  background: '#22c55e',
-                  color: 'white',
+          <NextAuthProvider>
+            <div className="min-h-screen bg-background text-text-primary transition-colors duration-200">
+              <AuthenticatedLayout>{children}</AuthenticatedLayout>
+            </div>
+            <Toaster 
+              position="top-right"
+              toastOptions={{
+                success: {
+                  style: {
+                    background: '#22c55e',
+                    color: 'white',
+                  },
                 },
-              },
-              error: {
-                style: {
-                  background: '#ef4444',
-                  color: 'white',
+                error: {
+                  style: {
+                    background: '#ef4444',
+                    color: 'white',
+                  },
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </NextAuthProvider>
         </ThemeProvider>
       </body>
     </html>
